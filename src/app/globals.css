@@ -1,26 +1,164 @@
 @import "tailwindcss";
+@import "./murecho.css";
+@plugin "@tailwindcss/typography";
 
+/*
+ * 色と書体は slides（portfolios/slides/styles/index.css）と同じものを使う。
+ * 3 つのサイトで同じ地・同じ書体に見せるため、値はあちらに合わせて動かさない。
+ */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --c-bg: #ffffff;
+  --c-surface: #f7f8fa;
+
+  --c-ink: #16191d;
+  --c-ink-2: #4b5563;
+  --c-ink-3: #8b949e;
+
+  --c-border: #e4e7eb;
+
+  /* アクセントは 1 色だけ。面は --c-accent、文字は --c-accent-ink */
+  --c-accent: #5bc5e8;
+  --c-accent-ink: #1b7ea3;
+  --c-accent-soft: #e6f6fc;
+  --c-accent-deep: #2aa4cd;
+
+  /* 方眼紙の線。**本文より強くしない** */
+  --c-grid: #f3f9fc;
+  --c-grid-strong: #e8f3f9;
+
+  /* 表紙の外周の帯 */
+  --c-cover-band: #cbe9f5;
+
+  color-scheme: light;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-bg: var(--c-bg);
+  --color-surface: var(--c-surface);
+  --color-ink: var(--c-ink);
+  --color-ink-2: var(--c-ink-2);
+  --color-ink-3: var(--c-ink-3);
+  --color-line: var(--c-border);
+  --color-accent: var(--c-accent);
+  --color-accent-ink: var(--c-accent-ink);
+  --color-accent-soft: var(--c-accent-soft);
+  --color-accent-deep: var(--c-accent-deep);
+
+  --font-sans: var(--font-space-grotesk), -apple-system, BlinkMacSystemFont,
+    "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif;
+  /* フッターだけ portfolio と同じ Geist にする。本文は --font-sans のまま */
+  --font-geist: var(--font-geist-sans), ui-sans-serif, system-ui,
+    "Hiragino Sans", "Noto Sans JP", sans-serif;
+
+  --font-display: var(--font-space-grotesk), "Murecho", -apple-system,
+    "Hiragino Sans", sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, "SF Mono", Menlo, monospace;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
+/* 地。白の上に方眼紙。28px の薄い線と 140px の濃い線の二層 */
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  color: var(--c-ink);
+  font-family: var(--font-sans);
+  line-height: 1.8;
+  background-color: var(--c-bg);
+  background-image:
+    linear-gradient(var(--c-grid-strong) 1px, transparent 1px),
+    linear-gradient(90deg, var(--c-grid-strong) 1px, transparent 1px),
+    linear-gradient(var(--c-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--c-grid) 1px, transparent 1px);
+  background-size: 140px 140px, 140px 140px, 28px 28px, 28px 28px;
+}
+
+/* 表紙の外周の帯を上辺だけ借りる */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0 0 auto 0;
+  height: 6px;
+  z-index: 2;
+  background: linear-gradient(90deg, var(--c-cover-band), var(--c-accent), var(--c-cover-band));
+}
+
+/*
+ * 本文。prose の既定色を資料側の墨と空色に寄せる。
+ * コードの地は薄い空色のベタ。白地のままだと方眼に紛れて範囲が分からない。
+ * 角は丸めない（デッキのコードブロックと同じ）。
+ */
+.prose {
+  --tw-prose-body: var(--c-ink);
+  --tw-prose-headings: var(--c-ink);
+  --tw-prose-links: var(--c-accent-ink);
+  --tw-prose-bold: var(--c-ink);
+  --tw-prose-counters: var(--c-ink-3);
+  --tw-prose-bullets: var(--c-accent);
+  --tw-prose-hr: var(--c-border);
+  --tw-prose-quotes: var(--c-ink-2);
+  --tw-prose-quote-borders: var(--c-accent);
+  --tw-prose-captions: var(--c-ink-3);
+  --tw-prose-code: var(--c-ink);
+  --tw-prose-th-borders: var(--c-border);
+  --tw-prose-td-borders: var(--c-border);
+}
+
+.prose :is(h2, h3, h4) {
+  font-family: var(--font-display);
+  font-weight: 900;
+  letter-spacing: -0.01em;
+}
+
+.prose :not(pre) > code {
+  background: var(--c-accent-soft);
+  padding: 0.1em 0.4em;
+  font-weight: 400;
+}
+.prose :not(pre) > code::before,
+.prose :not(pre) > code::after {
+  content: none;
+}
+
+.prose pre {
+  background: var(--c-accent-soft);
+  color: var(--c-ink);
+  border: 1px solid var(--c-border);
+  border-radius: 0;
+}
+
+.prose table {
+  font-size: 0.9em;
+}
+.prose thead th {
+  font-family: var(--font-display);
+  font-weight: 900;
+}
+
+/* 本文中の画像。角は丸めず 1px の罫で囲み、幅いっぱいに置く */
+.prose :where(img):not(:where([class~="not-prose"] *)) {
+  border: 1px solid var(--c-border, var(--c-line, #e4e7eb));
+  background: #fff;
+  width: 100%;
+}
+
+/* 引用。空色の芯を左に立てる。地は薄い空色 */
+.prose :where(blockquote):not(:where([class~="not-prose"] *)) {
+  border-left: 3px solid var(--c-accent, var(--c-sky, #5bc5e8));
+  background: var(--c-accent-soft, var(--c-sky-soft, #e6f6fc));
+  padding: 0.75rem 1rem;
+  font-style: normal;
+  quotes: none;
+}
+.prose :where(blockquote p:first-of-type)::before,
+.prose :where(blockquote p:last-of-type)::after {
+  content: none;
+}
+
+/* 表。はみ出すときは横に送る */
+.prose :where(table):not(:where([class~="not-prose"] *)) {
+  display: block;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+/* 回り込んだマスコットが見出しに食い込まないようにする */
+.prose :where(h2, h3, h4):not(:where([class~="not-prose"] *)) {
+  clear: both;
 }

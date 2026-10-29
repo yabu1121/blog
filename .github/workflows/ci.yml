@@ -1,0 +1,40 @@
+# 型と書き方の確認。**本番と同じことを手元でやる前に、ここで落とす。**
+#
+# ビルドまではやらない。このアプリのビルドはページを事前生成するために
+# DB を読むので、CI に DB の接続情報を置くことになる。置かずに済む範囲
+# （型・lint）に留めて、ビルドの確認は Vercel のデプロイに任せる。
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      # package-lock.json のとおりに入れる（勝手に上げない）
+      - run: npm ci
+
+      # 経路の型（PageProps / LayoutProps）は Next が作る。
+      # まっさらな取得直後には無いので、型を見る前に作らせる。
+      - name: 経路の型を作る
+        run: npx next typegen
+
+      - name: 型
+        run: npx tsc --noEmit
+
+      - name: lint
+        run: npx eslint src
+
+      # 既知の脆弱性。**落とさない**（上流待ちのものがあるため）
+      - name: 依存の脆弱性
+        run: npm audit --omit=dev || true

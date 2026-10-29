@@ -1,36 +1,49 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# blog
 
-## Getting Started
+技術ブログ。https://blog.y4bu.net
 
-First, run the development server:
+## 構成の方針
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+公開ページと管理画面を**別のホストに分ける**。
+
+```
+blog.y4bu.net    公開ページだけ。Server Component から DB を直読み
+admin.y4bu.net   記事の作成と編集。Cloudflare Access でホストごと保護
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+間に API を置かない。どちらも Next.js から Drizzle で DB を触るので、
+tRPC も CORS も型共有の手当ても要らない。
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+管理画面を同じホストの `/admin` に置かないのは、書き込み用のパスが保護の外に
+残りやすいため。ホストごと分ければその隙が生まれない。
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 技術スタック
 
-## Learn More
+| 領域 | 技術 |
+| --- | --- |
+| フレームワーク | Next.js (App Router) |
+| DB / ORM | Supabase (PostgreSQL) + Drizzle ORM |
+| 本文 | Markdown を DB に保存し、react-markdown + remark-gfm で描画 |
+| スタイリング | Tailwind CSS |
+| デプロイ | Vercel |
 
-To learn more about Next.js, take a look at the following resources:
+DB は portfolio と同じ Supabase プロジェクトを使い、schema `blog` で分離する。
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+**マイグレーションは admin リポジトリが持つ。** このリポジトリの
+`src/db/schema.ts` は読み取り用の同じ定義で、`db:generate` / `db:migrate` は置かない。
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 開発
 
-## Deploy on Vercel
+```sh
+cp .env.example .env.local   # DATABASE_URL を入れる
+npm install
+npm run dev
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 進捗
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- [x] プロジェクトの土台
+- [x] 記事テーブルのスキーマ
+- [ ] 公開ページ（一覧・詳細）
+- [x] 管理画面（別アプリ: admin）
+- [ ] Vercel + DNS + Cloudflare Access
